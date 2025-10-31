@@ -3,3 +3,6 @@ authors = ["andrew"]
 language = "en"
 src = "src"
 title = "ADR"
+
+[preprocessor.drawio]
+command = "mdbook-drawio"
