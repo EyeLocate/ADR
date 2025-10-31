@@ -1,61 +1,48 @@
-name: Deploy mdBook to GitHub Pages
+name: Deploy mdBook
 
 on:
   push:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v2
 
-      - name: Cache cargo registry
-        uses: actions/cache@v4
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v1
         with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
+          mdbook-version: "latest"
 
       - name: Setup Rust
-        uses: Swatinem/rust-cache@v2
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - uses: Swatinem/rust-cache@v2
         with:
           workspaces: "abstract/_tools/mdbook-drawio -> target"
 
-      - name: Configure Cargo to use system git
+      - name: Build Drawio Preprocessor
         run: |
-          mkdir -p ~/.cargo
-          echo '[net]' >> ~/.cargo/config.toml
-          echo 'git-fetch-with-cli = true' >> ~/.cargo/config.toml
+          cd abstract/_tools/mdbook-drawio
+          cargo build --release
+          sudo cp target/release/mdbook-drawio /usr/local/bin/
 
-      - name: Install mdBook and plugins
+      - name: Build Book
         run: |
-          if ! command -v mdbook &> /dev/null; then
-            cargo install mdbook
-          else
-            echo "mdBook already installed"
-          fi
+          cd abstract
+          mdbook build
 
-          if ! command -v mdbook-drawio &> /dev/null; then
-            cargo install --git https://github.com/drogue-iot/mdbook-drawio
-          else
-            echo "mdbook-drawio already installed"
-          fi
-
-      - name: Build the book
-        run: mdbook build
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/main' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./book
-          publish_branch: gh-pages
+          publish_dir: ./abstract/book
