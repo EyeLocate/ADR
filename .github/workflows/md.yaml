@@ -30,6 +30,12 @@ jobs:
         with:
           workspaces: "abstract/_tools/mdbook-drawio -> target"
 
+      - name: Configure Cargo to use system git
+        run: |
+          mkdir -p ~/.cargo
+          echo '[net]' >> ~/.cargo/config.toml
+          echo 'git-fetch-with-cli = true' >> ~/.cargo/config.toml
+
       - name: Install mdBook and plugins
         run: |
           if ! command -v mdbook &> /dev/null; then
