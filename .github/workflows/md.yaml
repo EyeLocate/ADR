@@ -11,38 +11,53 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Устанавливаем mdBook
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v1
         with:
           mdbook-version: "latest"
 
+      # Устанавливаем Rust
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           profile: minimal
 
+      # Кэш для ускорения сборок
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "abstract/_tools/mdbook-drawio -> target"
+          workspaces: "."
 
-      - name: Build Drawio Preprocessor
+      # Настраиваем Cargo для использования системного git (иначе бывают ошибки auth)
+      - name: Configure Cargo to use system git
         run: |
-          cd abstract/_tools/mdbook-drawio
-          cargo build --release
-          sudo cp target/release/mdbook-drawio /usr/local/bin/
+          mkdir -p ~/.cargo
+          echo '[net]' >> ~/.cargo/config.toml
+          echo 'git-fetch-with-cli = true' >> ~/.cargo/config.toml
 
+      # Сборка и установка плагина mdbook-drawio
+      - name: Install mdbook-drawio preprocessor
+        run: |
+          if ! command -v mdbook-drawio &> /dev/null; then
+            cargo install --git https://github.com/drogue-iot/mdbook-drawio
+          else
+            echo "mdbook-drawio already installed"
+          fi
+
+      # Сборка mdBook
       - name: Build Book
-        run: |
-          cd abstract
-          mdbook build
+        run: mdbook build
 
+      # Деплой на GitHub Pages
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./abstract/book
+          publish_dir: ./book
