@@ -29,26 +29,18 @@ jobs:
           toolchain: stable
           profile: minimal
 
-      # Кэш для ускорения сборок
+      # Кэш Cargo для ускорения сборок
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: "."
 
-      # Настраиваем Cargo для использования системного git (иначе бывают ошибки auth)
-      - name: Configure Cargo to use system git
+      # Клонируем mdbook-drawio вручную с токеном
+      - name: Clone mdbook-drawio
         run: |
-          mkdir -p ~/.cargo
-          echo '[net]' >> ~/.cargo/config.toml
-          echo 'git-fetch-with-cli = true' >> ~/.cargo/config.toml
-
-      # Сборка и установка плагина mdbook-drawio
-      - name: Install mdbook-drawio preprocessor
-        run: |
-          if ! command -v mdbook-drawio &> /dev/null; then
-            cargo install --git https://github.com/drogue-iot/mdbook-drawio
-          else
-            echo "mdbook-drawio already installed"
-          fi
+          git clone https://github.com/drogue-iot/mdbook-drawio.git
+          cd mdbook-drawio
+          cargo build --release
+          sudo cp target/release/mdbook-drawio /usr/local/bin/
 
       # Сборка mdBook
       - name: Build Book
