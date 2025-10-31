@@ -1,7 +1,7 @@
 # Summary
 
 - [Chapter 1](./chapter_1.md)
-- [Технологии реализации]
+- [Технологии реализации](./techologies_select.md)
     - [ML и обработка данных изображения](./ml_select.md)
     - [Базы данных](./db_select.md)
     - [Фронт-энд](./front_select.md)
