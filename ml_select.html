@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Chapter 1 - ADR</title>
+        <title>ML и обработка данных изображения - ADR</title>
 
 
         <!-- Custom HTML head -->
@@ -175,40 +175,54 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="Введение"><a class="header" href="#Введение">Введение</a></h1>
-<p>Разрабатываемая система представляет собой интеллектуальную платформу, основанную на технологиях компьютерного зрения и машинного обучения. Она предназначена для автоматического распознавания лиц студентов и сотрудников образовательного учреждения. Система объединяет <strong>фронтенд</strong>, <strong>бэкенд</strong> и <strong>модуль нейросети</strong>, обеспечивая:</p>
+                        <h1 id="adr--Выбор-технологий-для-ml-модуля-системы-видеомониторинга"><a class="header" href="#adr--Выбор-технологий-для-ml-модуля-системы-видеомониторинга">ADR — Выбор технологий для ML-модуля системы видеомониторинга</a></h1>
+<h2 id="Контекст"><a class="header" href="#Контекст">Контекст</a></h2>
+<p>ML-модуль системы отвечает за:</p>
 <ul>
-<li>Удобное взаимодействие с пользователем;</li>
-<li>Надёжную обработку данных;</li>
-<li>Высокую точность идентификации.</li>
+<li>детекцию объектов и лиц на кадрах с камер;</li>
+<li>распознавание личности обнаруженных лиц;</li>
+<li>передачу результатов на бэкенд для последующей обработки и хранения.</li>
 </ul>
-<h2 id="Цель-системы"><a class="header" href="#Цель-системы">Цель системы</a></h2>
-<p>Система направлена на автоматизацию процессов контроля посещаемости и перемещения студентов и сотрудников в здании учебного заведения. Основные функции включают:</p>
+<p>Основные требования:</p>
 <ul>
-<li>Фиксацию фактов входа и выхода человека;</li>
-<li>Сопоставление полученных изображений с базой данных лиц;</li>
-<li>Выявление нетипичных ситуаций, таких как:
+<li>высокая точность и скорость детекции и распознавания;</li>
+<li>возможность интеграции с другими модулями системы;</li>
+<li>зрелость и поддержка библиотек.</li>
+</ul>
+<h2 id="Сравнение-технологий-для-детекции-объектов-yolo-и-конкуренты"><a class="header" href="#Сравнение-технологий-для-детекции-объектов-yolo-и-конкуренты">Сравнение технологий для детекции объектов (YOLO и конкуренты)</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Модель</th><th>Скорость (FPS)</th><th>Точность</th><th>Простота интеграции</th><th>Примечания</th></tr></thead><tbody>
+<tr><td>YOLO (выбран)</td><td>Очень высокая</td><td>Высокая</td><td>Высокая</td><td>Оптимальное соотношение скорость/точность для real-time детекции, широко используется в промышленности и исследованиях</td></tr>
+<tr><td>SSD</td><td>Высокая</td><td>Средняя</td><td>Средняя</td><td>Быстрее Faster R-CNN, но уступает YOLO по точности и зрелости интеграции</td></tr>
+<tr><td>Faster R-CNN</td><td>Средняя</td><td>Очень высокая</td><td>Средняя</td><td>Высокая точность, но медленная и сложная интеграция для real-time сценариев</td></tr>
+<tr><td>DETR/RT-DETR</td><td>Высокая</td><td>Очень высокая</td><td>Средняя</td><td>Современные трансформерные модели, требуют GPU и настройки, сложнее интегрировать</td></tr>
+</tbody></table>
+</div>
+<h2 id="Сравнение-технологий-для-распознавания-лиц-face_recognition-и-конкуренты"><a class="header" href="#Сравнение-технологий-для-распознавания-лиц-face_recognition-и-конкуренты">Сравнение технологий для распознавания лиц (face_recognition и конкуренты)</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Библиотека</th><th>Точность</th><th>Простота интеграции</th><th>Масштабируемость</th><th>Примечания</th></tr></thead><tbody>
+<tr><td>face_recognition (выбран)</td><td>Высокая</td><td>Очень высокая</td><td>Средняя</td><td>Быстрая интеграция, зрелая библиотека, достаточная точность для продакшн-сценариев</td></tr>
+<tr><td>DeepFace (FaceNet/ArcFace)</td><td>Очень высокая</td><td>Средняя</td><td>Высокая</td><td>Более точная, требует настройки и обучения моделей, сложнее интеграция в текущий стек</td></tr>
+<tr><td>InsightFace</td><td>Очень высокая</td><td>Средняя</td><td>Высокая</td><td>Высокая точность, поддержка мульти-GPU, требует тонкой настройки и обучения</td></tr>
+<tr><td>VIPLFaceNet</td><td>Высокая</td><td>Средняя</td><td>Средняя</td><td>Хорошая точность, ограниченная поддержка и документация, менее распространена</td></tr>
+</tbody></table>
+</div>
+<h2 id="Обоснование-выбора"><a class="header" href="#Обоснование-выбора">Обоснование выбора</a></h2>
 <ul>
-<li>Повторное срабатывание;</li>
-<li>Попытка прохода постороннего лица.</li>
+<li><strong>YOLO:</strong> Обеспечивает оптимальный баланс скорости и точности для детекции лиц в реальном времени, легко интегрируется с Python-экосистемой.</li>
+<li><strong>face_recognition:</strong> Позволяет быстро реализовать функционал распознавания лиц с достаточной точностью, имеет зрелую документацию и активное сообщество.</li>
+<li><strong>Интеграция с системой:</strong> Python-библиотеки легко взаимодействуют с Go-бэкендом через REST/gRPC, упрощая передачу результатов детекции и распознавания.</li>
+<li><strong>Гибкость:</strong> При необходимости можно заменить face_recognition на более точные модели (ArcFace, InsightFace) без значительных изменений в архитектуре.</li>
 </ul>
-</li>
-</ul>
-<h2 id="Целевая-группа-пользователей"><a class="header" href="#Целевая-группа-пользователей">Целевая группа пользователей</a></h2>
-<p>Система ориентирована на следующие группы пользователей:</p>
-<ul>
-<li><strong>Сотрудники администрации</strong> образовательного учреждения;</li>
-<li><strong>Служба безопасности</strong>;</li>
-<li><strong>Специалисты IT-отдела</strong>, ответственные за сопровождение инфраструктуры;</li>
-<li><strong>Преподаватели и кураторы групп</strong> для оперативного контроля посещаемости студентов.</li>
-</ul>
+<p><strong>Вывод:</strong> Выбор YOLO и face_recognition обеспечивает быстрый запуск, достаточную точность и лёгкую интеграцию в систему, оставляя возможность для улучшения моделей в будущем.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="techologies_select.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
 
-                            <a rel="next prefetch" href="techologies_select.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="db_select.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -218,8 +232,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="techologies_select.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
 
-                    <a rel="next prefetch" href="techologies_select.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="db_select.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
