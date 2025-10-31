@@ -32,6 +32,11 @@ jobs:
           else
             echo "mdBook already installed"
           fi
+          
+      - name: Setup Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "abstract/_tools/mdbook-drawio -> target"
 
       - name: Build the book
         run: mdbook build
