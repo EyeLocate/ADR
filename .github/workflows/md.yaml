@@ -32,16 +32,14 @@ jobs:
 
       - name: Install mdBook and plugins
         run: |
-          # Установим mdBook, если не установлен
           if ! command -v mdbook &> /dev/null; then
             cargo install mdbook
           else
             echo "mdBook already installed"
           fi
 
-          # Установим плагин mdbook-drawio
           if ! command -v mdbook-drawio &> /dev/null; then
-            cargo install mdbook-drawio
+            cargo install --git https://github.com/drogue-iot/mdbook-drawio
           else
             echo "mdbook-drawio already installed"
           fi
